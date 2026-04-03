@@ -24,8 +24,12 @@ namespace AZQueueFunctionApp
             var queueUri = new Uri("https://defaultresourcegroub043.queue.core.windows.net/shipment-queue");
 
             var client = new QueueClient(
-                queueUri,
-                new DefaultAzureCredential());
+                      queueUri,
+                      new DefaultAzureCredential(),
+                      new QueueClientOptions
+                      {
+                          MessageEncoding = QueueMessageEncoding.Base64
+                      });
 
             await client.CreateIfNotExistsAsync();
             await client.SendMessageAsync("hello from http trigger");
