@@ -21,22 +21,49 @@ namespace AZQueueFunctionApp
         [Function("HttpTrigger")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
         {
+            _logger.LogInformation("HttpTrigger function invoked.");
+
             var queueUri = new Uri("https://defaultresourcegroub043.queue.core.windows.net/shipment-queue");
+            _logger.LogInformation("Queue URI: {QueueUri}", queueUri);
 
-            var client = new QueueClient(
-                      queueUri,
-                      new DefaultAzureCredential(),
-                      new QueueClientOptions
-                      {
-                          MessageEncoding = QueueMessageEncoding.Base64
-                      });
+            try
+            {
+                var client = new QueueClient(
+                    queueUri,
+                    new DefaultAzureCredential(),
+                    new QueueClientOptions
+                    {
+                        MessageEncoding = QueueMessageEncoding.Base64
+                    });
 
-            await client.CreateIfNotExistsAsync();
-            await client.SendMessageAsync("hello from http trigger");
+                _logger.LogInformation("QueueClient created for queue: {QueueName}", client.Name);
 
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteStringAsync("Message added to queue.");
-            return response;
+                var createResponse = await client.CreateIfNotExistsAsync();
+                if (createResponse != null)
+                {
+                    _logger.LogInformation("Queue '{QueueName}' created.", client.Name);
+                }
+                else
+                {
+                    _logger.LogInformation("Queue '{QueueName}' already exists.", client.Name);
+                }
+
+                var messageText = "hello from http trigger";
+                var sendResponse = await client.SendMessageAsync(messageText);
+                _logger.LogInformation("Message sent to queue '{QueueName}'. Status: {Status}", client.Name, sendResponse.GetRawResponse().Status);
+
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                await response.WriteStringAsync("Message added to queue.");
+                _logger.LogInformation("HttpTrigger function completed successfully.");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add message to queue.");
+                var response = req.CreateResponse(HttpStatusCode.InternalServerError);
+                await response.WriteStringAsync("Failed to add message to queue.");
+                return response;
+            }
         }
     }
 }

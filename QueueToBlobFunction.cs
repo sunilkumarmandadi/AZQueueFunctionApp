@@ -16,11 +16,28 @@ namespace AZQueueFunctionApp
 
         [Function("QueueToBlobFunction")]
         [BlobOutput("shipment-output/{rand-guid}.txt", Connection = "AzureWebJobsStorage")]
-        public string Run([QueueTrigger("shipment-queue", Connection = "AzureWebJobsStorage")] string queueMessage)
+        public string Run([QueueTrigger("shipment-queue", Connection = "AzureWebJobsStorage")] string queueMessage, FunctionContext context)
         {
-            _logger.LogInformation("Processing queue message: {message}", queueMessage);
+            var invocationId = context?.InvocationId.ToString() ?? "unknown";
+            _logger.LogInformation("QueueToBlobFunction triggered. InvocationId: {InvocationId}", invocationId);
+            _logger.LogInformation("Received queue message: {Message}", queueMessage);
 
-            return $"Processed Shipment: {queueMessage}";
+            try
+            {
+                _logger.LogDebug("Beginning processing of message. InvocationId: {InvocationId}", invocationId);
+
+                // ... perform processing (keep minimal to avoid changing behavior) ...
+
+                var result = $"Processed Shipment: {queueMessage}";
+
+                _logger.LogInformation("Successfully processed message. InvocationId: {InvocationId}", invocationId);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing queue message. InvocationId: {InvocationId}", invocationId);
+                throw;
+            }
         }
     }
 }
