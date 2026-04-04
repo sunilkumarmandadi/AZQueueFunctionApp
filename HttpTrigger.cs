@@ -37,6 +37,7 @@ namespace AZQueueFunctionApp
                     });
 
                 _logger.LogInformation("QueueClient created for queue: {QueueName}", client.Name);
+                _logger.LogInformation("Managed Identity ClientId: {clientId}", Environment.GetEnvironmentVariable("AZURE_CLIENT_ID"));
 
 
                 var messageText = "hello from http trigger";
