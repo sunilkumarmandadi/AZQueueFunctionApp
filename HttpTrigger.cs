@@ -38,15 +38,6 @@ namespace AZQueueFunctionApp
 
                 _logger.LogInformation("QueueClient created for queue: {QueueName}", client.Name);
 
-                var createResponse = await client.CreateIfNotExistsAsync();
-                if (createResponse != null)
-                {
-                    _logger.LogInformation("Queue '{QueueName}' created.", client.Name);
-                }
-                else
-                {
-                    _logger.LogInformation("Queue '{QueueName}' already exists.", client.Name);
-                }
 
                 var messageText = "hello from http trigger";
                 var sendResponse = await client.SendMessageAsync(messageText);
